@@ -23,6 +23,7 @@ LOCAL_C_INCLUDES := \
     -I $(CR3_ROOT)/thirdparty/libpng \
     -I $(CR3_ROOT)/thirdparty/freetype/include \
     -I $(CR3_ROOT)/thirdparty/freetype \
+    -I $(CR3_ROOT)/thirdparty/harfbuzz/src \
     -I $(CR3_ROOT)/thirdparty/libjpeg \
     -I $(CR3_ROOT)/thirdparty/antiword \
     -I $(CR3_ROOT)/thirdparty/chmlib/src
@@ -246,8 +247,50 @@ COFFEECATCH_SRC_FILES := \
     coffeecatch/coffeecatch.c \
     coffeecatch/coffeejni.c
 
+HARFBUZZ_SRC_FILES := \
+    ../../thirdparty/harfbuzz/src/hb-aat-layout.cc \
+    ../../thirdparty/harfbuzz/src/hb-blob.cc \
+    ../../thirdparty/harfbuzz/src/hb-buffer.cc \
+    ../../thirdparty/harfbuzz/src/hb-buffer-serialize.cc \
+    ../../thirdparty/harfbuzz/src/hb-common.cc \
+    ../../thirdparty/harfbuzz/src/hb-face.cc \
+    ../../thirdparty/harfbuzz/src/hb-fallback-shape.cc \
+    ../../thirdparty/harfbuzz/src/hb-font.cc \
+    ../../thirdparty/harfbuzz/src/hb-ft.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-color.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-font.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-layout.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-map.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-math.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-complex-arabic.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-complex-default.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-complex-hangul.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-complex-hebrew.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-complex-indic.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-complex-indic-table.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-complex-khmer.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-complex-myanmar.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-complex-thai.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-complex-tibetan.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-complex-use.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-complex-use-table.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-fallback.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape-normalize.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-shape.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-tag.cc \
+    ../../thirdparty/harfbuzz/src/hb-ot-var.cc \
+    ../../thirdparty/harfbuzz/src/hb-set.cc \
+    ../../thirdparty/harfbuzz/src/hb-shape.cc \
+    ../../thirdparty/harfbuzz/src/hb-shape-plan.cc \
+    ../../thirdparty/harfbuzz/src/hb-shaper.cc \
+    ../../thirdparty/harfbuzz/src/hb-ucdn.cc \
+    ../../thirdparty/harfbuzz/src/hb-unicode.cc \
+    ../../thirdparty/harfbuzz/src/hb-warning.cc \
+    ../../thirdparty/harfbuzz/src/hb-ucdn/ucdn.c \
+
 LOCAL_SRC_FILES := \
     $(JNI_SRC_FILES) \
+    $(HARFBUZZ_SRC_FILES) \
     $(CRENGINE_SRC_FILES) \
     $(FREETYPE_SRC_FILES) \
     $(PNG_SRC_FILES) \
