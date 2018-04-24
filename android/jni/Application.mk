@@ -22,3 +22,5 @@ APP_PLATFORM := android-8
 #APP_PLATFORM := android-3
 
 NDK_TOOLCHAIN_VERSION := 4.9
+
+APP_STL := c++_static
