@@ -100,10 +100,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     ldomDocCache::init( qt2cr( cacheDir ), DOC_CACHE_SIZE );
     ui->view->setPropsChangeCallback( this );
+    bool settingsExists = false;
     if ( !ui->view->loadSettings( iniFile ) )
-        if ( !ui->view->loadSettings( iniFile2 ) )
-          ui->view->saveSettings( iniFile );
-
+        settingsExists = ui->view->loadSettings( iniFile2 );
+    //Detect even place for future save settings
+    if(!settingsExists)
+        if ( !ui->view->saveSettings( iniFile2) )
+            ui->view->saveSettings( iniFile );
     if ( !ui->view->loadHistory( histFile ) )
         if ( !ui->view->loadHistory( histFile2 ) )
           ui->view->saveHistory( histFile );

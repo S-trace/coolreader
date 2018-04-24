@@ -3,7 +3,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := cr3engine-3-1-1
+LOCAL_MODULE    := cr3engine-3-1-2
 
 # Generate CREngine blob with statically linked libjpeg, libpng, libfreetype, chmlib
 # TODO: build libraries using separate makefiles
@@ -28,10 +28,14 @@ LOCAL_C_INCLUDES := \
     -I $(CR3_ROOT)/thirdparty/chmlib/src
 
 
-LOCAL_CFLAGS += $(CRFLAGS) $(CRENGINE_INCLUDES) -Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall
+LOCAL_CFLAGS += $(CRFLAGS) $(CRENGINE_INCLUDES)
+
+LOCAL_CFLAGS += -Wno-psabi -Wno-unused-variable -Wno-sign-compare -Wno-write-strings -Wno-main -Wno-unused-but-set-variable -Wno-unused-function -Wall
 
 LOCAL_CFLAGS += -funwind-tables -Wl,--no-merge-exidx-entries
 
+LOCAL_CFLAGS += -g -O1
+# Necessary for building cr3engine.cpp in Android Studio 3.1.1
 LOCAL_CFLAGS += -fexceptions
 
 CRENGINE_SRC_FILES := \

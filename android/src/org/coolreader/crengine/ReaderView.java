@@ -5053,30 +5053,29 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
     	});
     }
 
+    public Bookmark getCurrentPositionBookmark() {
+        if (!mOpened)
+            return null;
+        Bookmark bmk = doc.getCurrentPageBookmarkNoRender();
+        if (bmk != null) {
+            bmk.setTimeStamp(System.currentTimeMillis());
+            bmk.setType(Bookmark.TYPE_LAST_POSITION);
+            if (mBookInfo != null)
+                mBookInfo.setLastPosition(bmk);
+        }
+        return bmk;
+    }
 
-	public Bookmark getCurrentPositionBookmark() {
-		if (!mOpened)
-			return null;
-		Bookmark bmk = doc.getCurrentPageBookmarkNoRender();
-		if (bmk != null) {
-			bmk.setTimeStamp(System.currentTimeMillis());
-			bmk.setType(Bookmark.TYPE_LAST_POSITION);
-			if (mBookInfo != null)
-				mBookInfo.setLastPosition(bmk);
-		}
-		return bmk;
-	}
+    Bookmark lastSavedBookmark = null;
 
-	Bookmark lastSavedBookmark = null;
-
-	public void savePositionBookmark(Bookmark bmk) {
+    public void savePositionBookmark(Bookmark bmk) {
         if (bmk != null && mBookInfo != null && isBookLoaded()) {
-        	//setBookPosition();
-        	if (lastSavedBookmark == null || !lastSavedBookmark.getStartPos().equals(bmk.getStartPos())) {
-	        	Services.getHistory().updateRecentDir();
-	        	mActivity.getDB().saveBookInfo(mBookInfo);
-	        	mActivity.getDB().flush();
-	        	lastSavedBookmark = bmk;
+            //setBookPosition();
+            if (lastSavedBookmark == null || !lastSavedBookmark.getStartPos().equals(bmk.getStartPos())) {
+                Services.getHistory().updateRecentDir();
+                mActivity.getDB().saveBookInfo(mBookInfo);
+                mActivity.getDB().flush();
+                lastSavedBookmark = bmk;
         	}
         }
     }
