@@ -29,7 +29,7 @@
         android:allowClearUserData="true"
         android:icon="@drawable/cr3_logo"
         android:label="@string/app_name"
-        android:process="org.coolreader">
+        android:process="${applicationId}">
 <!--
            android:configChanges="orientation|keyboardHidden|locale|screenSize"
 -->
