@@ -2,7 +2,6 @@
 package org.coolreader;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Map;
 
 import org.coolreader.Dictionaries.DictionaryException;
@@ -50,12 +49,16 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import compat.virxkane.Perms;
+
+import static compat.virxkane.Perms.PERM_REQUEST_READ_PHONE_STATE_CODE;
+import static compat.virxkane.Perms.PERM_REQUEST_STORAGE_CODE;
 
 public class CoolReader extends BaseActivity
 {
@@ -73,6 +76,7 @@ public class CoolReader extends BaseActivity
 	//CRDB mDB;
 	private ViewGroup mCurrentFrame;
 	private ViewGroup mPreviousFrame;
+	private final Perms mPermissions = new Perms(this);
 	
 	
 	String fileToLoadOnStart = null;
@@ -83,9 +87,6 @@ public class CoolReader extends BaseActivity
 	BroadcastReceiver intentReceiver;
 
 	private boolean justCreated = false;
-
-	private static final int PERM_REQUEST_STORAGE_CODE = 1;
-	private static final int PERM_REQUEST_READ_PHONE_STATE_CODE = 2;
 
 	/** Called when the activity is first created. */
     @Override
@@ -98,7 +99,7 @@ public class CoolReader extends BaseActivity
 
 		// Can request only one set of permissions at a time
 		// Then request all permission at a time.
-		requestStoragePermissions();
+        mPermissions.requestStoragePermissions();
 
 		// apply settings
     	onSettingsChanged(settings(), null);
@@ -472,59 +473,6 @@ public class CoolReader extends BaseActivity
 
 		
 		log.i("CoolReader.onStop() exiting");
-	}
-
-	private void requestStoragePermissions() {
-		// check or request permission for storage
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			int readExtStoragePermissionCheck = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
-			int writeExtStoragePermissionCheck = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-			//int phoneStatePermissionCheck = checkSelfPermission(Manifest.permission.READ_PHONE_STATE);
-			ArrayList<String> needPerms = new ArrayList<String>();
-			if (PackageManager.PERMISSION_GRANTED != readExtStoragePermissionCheck) {
-				needPerms.add(Manifest.permission.READ_EXTERNAL_STORAGE);
-			} else {
-				log.i("READ_EXTERNAL_STORAGE permission already granted.");
-			}
-			if (PackageManager.PERMISSION_GRANTED != writeExtStoragePermissionCheck) {
-				needPerms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-			} else {
-				log.i("WRITE_EXTERNAL_STORAGE permission already granted.");
-			}
-			/*if (PackageManager.PERMISSION_GRANTED != phoneStatePermissionCheck) {
-				needPerms.add(Manifest.permission.READ_PHONE_STATE);
-			} else {
-				log.i("READ_PHONE_STATE permission already granted.");
-			}*/
-			if (!needPerms.isEmpty()) {
-				// TODO: Show an explanation to the user
-				// Show an explanation to the user *asynchronously* -- don't block
-				// this thread waiting for the user's response! After the user
-				// sees the explanation, try again to request the permission.
-				String[] templ = new String[0];
-				log.i("Some permissions DENIED, requesting from user these permissions: " + needPerms.toString());
-				// request permission from user
-				requestPermissions(needPerms.toArray(templ), PERM_REQUEST_STORAGE_CODE);
-			}
-		}
-	}
-
-	private void requestReadPhoneStatePermissions() {
-		// check or request permission for storage
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			int phoneStatePermissionCheck = checkSelfPermission(Manifest.permission.READ_PHONE_STATE);
-			if (PackageManager.PERMISSION_GRANTED != phoneStatePermissionCheck) {
-				log.i("READ_PHONE_STATE permission DENIED, requesting from user");
-				// TODO: Show an explanation to the user
-				// Show an explanation to the user *asynchronously* -- don't block
-				// this thread waiting for the user's response! After the user
-				// sees the explanation, try again to request the permission.
-				// request permission from user
-				requestPermissions(new String[] { Manifest.permission.READ_PHONE_STATE } , PERM_REQUEST_READ_PHONE_STATE_CODE);
-			} else {
-				log.i("READ_PHONE_STATE permission already granted.");
-			}
-		}
 	}
 
 	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -1104,14 +1052,10 @@ public class CoolReader extends BaseActivity
 			return false;
 		}
 		if (!phoneStateChangeHandlerInstalled) {
-			boolean readPhoneStateIsAvailable;
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-				readPhoneStateIsAvailable = checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
-			} else
-				readPhoneStateIsAvailable = true;
+			boolean readPhoneStateIsAvailable = mPermissions.isReadPhoneStateAvailable();
 			if (!readPhoneStateIsAvailable) {
 				// assumed Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-				requestReadPhoneStatePermissions();
+				mPermissions.requestReadPhoneStatePermissions();
 			} else {
 				// On Android API less than 23 phone read state permission is granted
 				// after application install (permission requested while application installing).
@@ -1451,7 +1395,6 @@ public class CoolReader extends BaseActivity
 	
 	/**
 	 * Get last stored location.
-	 * @param location
 	 * @return
 	 */
 	private String getLastLocation() {
