@@ -19,7 +19,7 @@ allprojects {
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 22
+    compileSdkVersion 23
     buildToolsVersion "27.0.3"
 
     defaultConfig {
@@ -50,4 +50,6 @@ android {
             assets.srcDirs = ['assets']
         }
     }
+
+    useLibrary 'org.apache.http.legacy'
 }
