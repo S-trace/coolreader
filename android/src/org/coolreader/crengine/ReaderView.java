@@ -935,6 +935,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 		private final static int STATE_WAIT_FOR_DOUBLE_CLICK = 5; // flipping is in progress
 		private final static int STATE_DONE = 6; // done: no more tracking
 		private final static int STATE_BRIGHTNESS = 7; // brightness change in progress
+		private final static int STATE_FLIP_TRACKING = 8; // pages flip tracking in progress
 		
 		private final static int EXPIRATION_TIME_MS = 180000;
 		
@@ -978,6 +979,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			case STATE_WAIT_FOR_DOUBLE_CLICK:
 			case STATE_DONE:
 			case STATE_BRIGHTNESS:
+			case STATE_FLIP_TRACKING:
 				stopBrightnessControl(-1, -1);
 				break;
 			}
@@ -985,6 +987,54 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 			unhiliteTapZone(); 
 			currentTapHandler = new TapHandler();
 			return true;
+		}
+
+		private void adjustStartValuesOnDrag(int dragThreshold, boolean isPageMode, int dir) {
+			if (dir > dragThreshold) {
+				if (isPageMode) {
+					start_x += dragThreshold;
+				} else {
+					start_y += dragThreshold;
+				}
+				Log.d("S-trace", "adjustStartValuesOnDrag: new start_x=" + start_x + " start_y=" + start_y);
+			}
+			if (dir < -dragThreshold) {
+				if (isPageMode) {
+					start_x -= dragThreshold;
+					if (start_x < 0) {
+						start_x = 0;
+					}
+				} else {
+					start_y -= dragThreshold;
+					if (start_y < 0) {
+						start_y = 0;
+					}
+				}
+				Log.d("S-trace", "adjustStartValuesOnDrag: new start_x=" + start_x + " start_y=" + start_y);
+			}
+		}
+
+		private void updatePageFlipTracking(final int x, final int y) {
+			int distForFlip = surface.getWidth() / 10;
+			Log.i("S-trace", "updatePageFlipTracking: x=" + x + ", y=" + y + " distForFlip=" + distForFlip);
+			boolean isPageMode = mSettings.getInt(PROP_PAGE_VIEW_MODE, 1) == 1;
+			int dir = isPageMode ? x - start_x : y - start_y;
+			adjustStartValuesOnDrag(distForFlip, isPageMode, dir);
+			int pagesToFlip = dir / distForFlip;
+			if ( pagesToFlip != 0) {
+				boolean backward = ! (pagesToFlip < 0); //invert direction to make swipe more intuitive
+				ReaderAction action = backward ? ReaderAction.PAGE_DOWN : ReaderAction.PAGE_UP;
+				while (pagesToFlip != 0) {
+					Log.i("S-trace", "Flipping page backward=" + backward);
+					onAction(action);
+					if (pagesToFlip > 0) {
+						pagesToFlip--;
+					} else {
+						pagesToFlip++;
+					}
+				}
+			}
+
 		}
 
 		/// perform action and reset touch tracking state
@@ -1189,6 +1239,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					selectionModeActive = false;
 					state = STATE_DONE;
 					return cancel();
+				case STATE_FLIP_TRACKING:
+					updatePageFlipTracking(x, y);
+					state = STATE_DONE;
+					return cancel();
 				}
 			} else if (event.getAction() == MotionEvent.ACTION_DOWN) {
 				switch (state) {
@@ -1213,6 +1267,7 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 				case STATE_BRIGHTNESS:
 				case STATE_FLIPPING:
 				case STATE_SELECTION:
+				case STATE_FLIP_TRACKING:
 					return unexpectedEvent();
 				case STATE_WAIT_FOR_DOUBLE_CLICK:
 					if (doubleTapAction == ReaderAction.START_SELECTION)
@@ -1243,13 +1298,10 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					boolean isPageMode = mSettings.getInt(PROP_PAGE_VIEW_MODE, 1) == 1;
 					int dir = isPageMode ? x - start_x : y - start_y;
 					if (gesturePageFlippingEnabled) {
-						if (pageFlipAnimationSpeedMs == 0 || DeviceInfo.EINK_SCREEN) {
-							// no animation
-							return performAction(dir < 0 ? ReaderAction.PAGE_DOWN : ReaderAction.PAGE_UP, false);
-						}
-						startAnimation(start_x, start_y, width, height, x, y);
-						updateAnimation(x, y);
-						state = STATE_FLIPPING;
+						// page flip
+						state = STATE_FLIP_TRACKING;
+						updatePageFlipTracking(start_x, start_y);
+						return true;
 					}
 					return true;
 				case STATE_FLIPPING:
@@ -1257,6 +1309,9 @@ public class ReaderView implements android.view.SurfaceHolder.Callback, Settings
 					return true;
 				case STATE_BRIGHTNESS:
 					updateBrightnessControl(x, y);
+					return true;
+				case STATE_FLIP_TRACKING:
+					updatePageFlipTracking(x, y);
 					return true;
 				case STATE_WAIT_FOR_DOUBLE_CLICK:
 					return true;
